@@ -1,0 +1,4 @@
+/* Entry point Tailwind yang menghasilkan layer dasar, komponen, dan utility. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
