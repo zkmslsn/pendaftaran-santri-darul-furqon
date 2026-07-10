@@ -70,7 +70,7 @@
             <div>
                 <span class="eyebrow">Export Data</span>
                 <h1 class="dashboard-title">Download Data Santri</h1>
-                <p class="dashboard-subtitle">Pilih jenis data, tahun, dan data tertentu untuk Excel (.xlsx), atau download satu data lengkap dalam PDF.</p>
+                <p class="dashboard-subtitle">Pilih jenis data, tahun, dan data tertentu untuk didownload dalam format Excel (.xlsx).</p>
             </div>
 
             <div class="topbar-actions">
@@ -130,15 +130,9 @@
                         Pilih semua data di tabel
                     </label>
 
-                    <div class="download-action-buttons">
-                        <button type="button" class="btn btn-primary" id="downloadSinglePdfButton" data-pdf-url-template="{{ route('admin.download.pdf', ['pendaftar' => '__ID__']) }}">
-                            <i class="fa-solid fa-file-pdf"></i> Download PDF
-                        </button>
-
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fa-solid fa-download"></i> Download Excel (.xlsx)
-                        </button>
-                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-download"></i> Download Excel (.xlsx)
+                    </button>
                 </div>
 
                 <div class="table-wrap">
@@ -199,28 +193,6 @@
     </main>
 </div>
 
-<div class="download-notice-overlay" id="downloadNotice" aria-hidden="true">
-    <div class="download-notice-dialog" role="dialog" aria-modal="true" aria-labelledby="downloadNoticeTitle">
-        <button type="button" class="download-notice-close" id="closeDownloadNotice" aria-label="Tutup notifikasi">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-
-        <div class="download-notice-icon">
-            <i class="fa-solid fa-file-pdf"></i>
-        </div>
-
-        <div>
-            <span class="eyebrow">Download PDF</span>
-            <h2 id="downloadNoticeTitle">Pilih Data Terlebih Dahulu</h2>
-            <p id="downloadNoticeMessage">Pilih satu data terlebih dahulu untuk download PDF.</p>
-        </div>
-
-        <button type="button" class="btn btn-primary" id="confirmDownloadNotice">
-            Mengerti
-        </button>
-    </div>
-</div>
-
 <script>
     const checkAll = document.getElementById('checkAllDownload');
     if (checkAll) {
@@ -231,72 +203,6 @@
         });
     }
 
-    const downloadNotice = document.getElementById('downloadNotice');
-    const downloadNoticeTitle = document.getElementById('downloadNoticeTitle');
-    const downloadNoticeMessage = document.getElementById('downloadNoticeMessage');
-    const closeDownloadNoticeButton = document.getElementById('closeDownloadNotice');
-    const confirmDownloadNoticeButton = document.getElementById('confirmDownloadNotice');
-
-    function showDownloadNotice(title, message) {
-        downloadNoticeTitle.textContent = title;
-        downloadNoticeMessage.textContent = message;
-        downloadNotice.classList.add('show');
-        downloadNotice.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-        confirmDownloadNoticeButton.focus();
-    }
-
-    function closeDownloadNotice() {
-        downloadNotice.classList.remove('show');
-        downloadNotice.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-        downloadSinglePdfButton?.focus();
-    }
-
-    window.alert = function (message) {
-        showDownloadNotice('Download PDF', String(message || 'Terjadi kesalahan saat memproses download PDF.'));
-    };
-
-    if (closeDownloadNoticeButton) {
-        closeDownloadNoticeButton.addEventListener('click', closeDownloadNotice);
-    }
-
-    if (confirmDownloadNoticeButton) {
-        confirmDownloadNoticeButton.addEventListener('click', closeDownloadNotice);
-    }
-
-    if (downloadNotice) {
-        downloadNotice.addEventListener('click', function (event) {
-            if (event.target === downloadNotice) {
-                closeDownloadNotice();
-            }
-        });
-    }
-
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape' && downloadNotice?.classList.contains('show')) {
-            closeDownloadNotice();
-        }
-    });
-
-    const downloadSinglePdfButton = document.getElementById('downloadSinglePdfButton');
-    if (downloadSinglePdfButton) {
-        downloadSinglePdfButton.addEventListener('click', function () {
-            const checkedItems = Array.from(document.querySelectorAll('.download-checkbox:checked'));
-
-            if (checkedItems.length === 0) {
-                showDownloadNotice('Pilih Data Terlebih Dahulu', 'Centang satu data santri pada tabel sebelum menekan tombol Download PDF.');
-                return;
-            }
-
-            if (checkedItems.length > 1) {
-                showDownloadNotice('Cukup Satu Data', 'Download PDF hanya bisa untuk satu data. Hapus centang lain, lalu sisakan satu data yang ingin didownload.');
-                return;
-            }
-
-            window.location.href = downloadSinglePdfButton.dataset.pdfUrlTemplate.replace('__ID__', checkedItems[0].value);
-        });
-    }
 </script>
 </body>
 </html>

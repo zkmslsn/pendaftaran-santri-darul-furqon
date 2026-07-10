@@ -1043,101 +1043,6 @@ textarea {
     border-bottom: 1px solid var(--dash-border);
 }
 
-.download-action-buttons {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.download-notice-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 22px;
-    background: rgba(2, 44, 34, 0.58);
-    backdrop-filter: blur(8px);
-}
-
-.download-notice-overlay.show {
-    display: flex;
-}
-
-.download-notice-dialog {
-    position: relative;
-    width: min(430px, 100%);
-    padding: 28px;
-    border: 1px solid rgba(6, 78, 59, 0.14);
-    border-radius: 24px;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 248, 0.98));
-    box-shadow: 0 30px 90px rgba(2, 44, 34, 0.28);
-    text-align: center;
-    animation: downloadNoticeIn 0.2s ease;
-}
-
-.download-notice-close {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    width: 36px;
-    height: 36px;
-    border: 1px solid var(--dash-border);
-    border-radius: 999px;
-    background: #ffffff;
-    color: var(--dash-primary-dark);
-    cursor: pointer;
-}
-
-.download-notice-icon {
-    width: 68px;
-    height: 68px;
-    margin: 0 auto 18px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 22px;
-    background: linear-gradient(135deg, var(--dash-primary-dark), var(--dash-primary));
-    color: #ffffff;
-    font-size: 26px;
-    box-shadow: 0 16px 34px rgba(6, 78, 59, 0.24);
-}
-
-.download-notice-dialog h2 {
-    margin: 8px 0 10px;
-    color: var(--dash-primary-dark);
-    font-size: 24px;
-    line-height: 1.25;
-    font-weight: 950;
-}
-
-.download-notice-dialog p {
-    margin: 0 auto 22px;
-    color: #526376;
-    font-size: 14px;
-    line-height: 1.7;
-    font-weight: 650;
-}
-
-.download-notice-dialog .btn {
-    min-width: 130px;
-}
-
-@keyframes downloadNoticeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px) scale(0.98);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
 .check-all {
     display: inline-flex;
     align-items: center;
@@ -1602,14 +1507,6 @@ svg {
         width: 100%;
     }
 
-    .download-notice-overlay {
-        padding: 16px;
-    }
-
-    .download-notice-dialog {
-        padding: 24px 18px;
-        border-radius: 20px;
-    }
 }
 
 @media (max-width: 560px) {

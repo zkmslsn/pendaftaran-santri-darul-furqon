@@ -1,0 +1,11 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Izinkan request yang sudah menuju document root Laravel.
+    RewriteRule ^public(?:/|$) - [L]
+
+    # Arahkan URL proyek ke document root Laravel agar path dibaca dengan benar.
+    RewriteRule ^(.*)$ /pendaftaran-santri/public/$1 [R=302,L,NE]
+</IfModule>

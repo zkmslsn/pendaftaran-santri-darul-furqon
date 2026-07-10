@@ -90,9 +90,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/download-data/export', [AdminPendaftarController::class, 'export'])
         ->name('admin.download.export');
 
-    Route::get('/admin/download-data/{pendaftar}/pdf', [AdminPendaftarController::class, 'downloadPdf'])
-        ->name('admin.download.pdf');
-
     Route::get('/admin/pendaftar/{pendaftar}/edit', [AdminPendaftarController::class, 'edit'])
         ->name('admin.pendaftar.edit');
 

@@ -19,14 +19,19 @@ class SantriStatusController extends Controller
         }
 
         $user = Auth::user();
+
         // Nomor induk adalah pengenal utama; email menjadi fallback untuk akun lama.
-        $pendaftar = Pendaftar::query()
-            ->where('nomor_induk_santri', $user->nomor_induk_santri)
-            ->orWhere('email', $user->email)
-            ->first();
+        // Query dibuat terpisah agar nilai kosong tidak menghubungkan akun ke data lain.
+        $pendaftar = filled($user->nomor_induk_santri)
+            ? Pendaftar::where('nomor_induk_santri', $user->nomor_induk_santri)->first()
+            : null;
+
+        if (! $pendaftar && filled($user->email)) {
+            $pendaftar = Pendaftar::where('email', $user->email)->first();
+        }
 
         if (! $pendaftar) {
-            abort(404, 'Data pendaftaran belum terhubung dengan nomor induk santri ini.');
+            return response()->view('santri.unlinked', compact('user'));
         }
 
         return view('santri.status', compact('pendaftar'));

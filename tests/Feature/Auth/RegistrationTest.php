@@ -4,6 +4,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -11,14 +12,14 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_screen_can_be_rendered(): void
+    public function test_registration_screen_redirects_to_admission_form(): void
     {
         $response = $this->get('/register');
 
-        $response->assertStatus(200);
+        $response->assertRedirect(route('daftar.create', absolute: false));
     }
 
-    public function test_new_users_can_register(): void
+    public function test_legacy_registration_post_cannot_create_an_orphan_santri_account(): void
     {
         $response = $this->post('/register', [
             'name' => 'Test User',
@@ -27,7 +28,10 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertGuest();
+        $this->assertDatabaseMissing(User::class, [
+            'email' => 'test@example.com',
+        ]);
+        $response->assertRedirect(route('daftar.create', absolute: false));
     }
 }

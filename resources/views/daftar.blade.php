@@ -52,6 +52,7 @@
             width: 100%;
             min-height: 76px;
             padding: 0 7%;
+            font-family: Arial, sans-serif;
             background: rgba(255, 255, 255, 0.96);
             backdrop-filter: blur(16px);
             box-shadow: 0 10px 30px rgba(6, 78, 59, 0.08);

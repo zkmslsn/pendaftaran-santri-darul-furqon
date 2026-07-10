@@ -1,6 +1,6 @@
 # Sistem Pendaftaran Santri Darul Furqon
 
-Aplikasi Laravel 11 untuk pendaftaran santri putri, verifikasi admin, pemantauan pengasuh, status santri, serta ekspor Excel dan PDF.
+Aplikasi Laravel 11 untuk pendaftaran santri putri, verifikasi admin, pemantauan pengasuh, status santri, serta ekspor Excel.
 
 ## Persyaratan
 

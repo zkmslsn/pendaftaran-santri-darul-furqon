@@ -5,12 +5,9 @@ namespace App\Http\Controllers;
 use App\Exports\SantriExport;
 use App\Models\Pendaftar;
 use App\Models\User;
-use App\Support\SimplePdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Excel as ExcelWriter;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
@@ -109,39 +106,6 @@ class AdminPendaftarController extends Controller
         $fileName = 'data_santri_'.$filters['jenis_data'].'_'.($filters['tahun'] ?: 'semua_tahun').'_'.date('Y-m-d').'.xlsx';
 
         return ExcelFacade::download(new SantriExport($pendaftars), $fileName, ExcelWriter::XLSX);
-    }
-
-    /** Membuat PDF data pendaftar dan menyertakan dokumen pendukung yang valid. */
-    public function downloadPdf(Pendaftar $pendaftar)
-    {
-        $this->ensureAdmin();
-
-        $pendaftar->load('user');
-
-        $pdf = new SimplePdf('Dicetak '.now()->format('d/m/Y H:i'));
-        $pdf->heading(
-            'Formulir Data Santri',
-            'Pondok Pesantren Tahfidzul Quran Darul Furqon - Arsip lengkap satu data dari menu Download Data Admin.'
-        );
-
-        foreach ($this->pdfSections($pendaftar) as $section => $fields) {
-            $pdf->section($section);
-
-            foreach ($fields as $label => $value) {
-                $pdf->field($label, $value);
-            }
-        }
-
-        $this->appendPdfDocuments($pdf, $pendaftar);
-
-        $pdf->note('Catatan: dokumen gambar JPG, JPEG, dan PNG ditampilkan langsung di PDF. File PDF asli tetap tersedia melalui tautan dokumen.');
-
-        $fileName = 'data_santri_'.Str::slug($pendaftar->nama ?: 'santri').'_'.($pendaftar->nomor_induk_santri ?: $pendaftar->id).'.pdf';
-
-        return response($pdf->output(), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
-        ]);
     }
 
     /** Menampilkan formulir perubahan data pendaftar. */
@@ -651,137 +615,6 @@ class AdminPendaftarController extends Controller
                     $userQuery->where('email', 'like', "%{$search}%");
                 });
         });
-    }
-
-    /** Menyusun kelompok label dan nilai yang ditampilkan pada PDF. */
-    private function pdfSections(Pendaftar $pendaftar): array
-    {
-        $statusCategory = [
-            'calon' => 'Pendaftar / Calon Santri',
-            'aktif' => 'Santri Aktif',
-            'alumni' => 'Alumni',
-        ][$this->categoryFromStatus($pendaftar->status)] ?? 'Pendaftar / Calon Santri';
-
-        $tanggalDiterimaValue = $pendaftar->tanggal_diterima
-            ?: (in_array($pendaftar->status, ['diterima', 'aktif', 'alumni'], true) ? $pendaftar->updated_at : null);
-        $tanggalAlumniValue = $pendaftar->tanggal_alumni
-            ?: ($pendaftar->status === 'alumni' ? $pendaftar->updated_at : null);
-
-        return [
-            'Status dan Akun' => [
-                'Kategori Data' => $statusCategory,
-                'Status Santri' => $this->statusLabel($pendaftar->status),
-                'Status Pembayaran' => $this->paymentLabel($pendaftar->status_pembayaran),
-                'Nomor Induk Santri' => $pendaftar->nomor_induk_santri ?: $pendaftar->password_awal ?: '-',
-                'Email Login' => $pendaftar->user?->email ?? $pendaftar->email ?? '-',
-                'Password Awal' => $pendaftar->password_awal ?: $pendaftar->nomor_induk_santri ?: '-',
-                'Tanggal Daftar' => $this->pdfDate($pendaftar->created_at, true),
-                'Tanggal Upload Pembayaran' => $this->pdfDate($pendaftar->tanggal_upload_pembayaran, true),
-                'Tanggal Diterima Aktif' => $this->pdfDate($tanggalDiterimaValue, true),
-                'Tanggal Menjadi Alumni' => $this->pdfDate($tanggalAlumniValue, true),
-                'Catatan Admin' => $pendaftar->catatan ?: '-',
-            ],
-            'Data Pribadi Santri' => [
-                'Nama Lengkap' => $pendaftar->nama ?: '-',
-                'Email Pendaftaran' => $pendaftar->email ?: '-',
-                'Jenis Kelamin' => $pendaftar->jenis_kelamin ?: '-',
-                'Tempat Lahir' => $pendaftar->tempat_lahir ?: '-',
-                'Tanggal Lahir' => $this->pdfDate($pendaftar->tgl_lahir),
-                'Alamat' => $pendaftar->alamat ?: '-',
-                'Asal Sekolah' => $pendaftar->asal_sekolah ?: '-',
-                'Nomor WhatsApp Santri' => $pendaftar->wa_santri ?: '-',
-            ],
-            'Data Orang Tua / Wali' => [
-                'Nama Ayah' => $pendaftar->nama_ayah ?: '-',
-                'Pekerjaan Ayah' => $pendaftar->pekerjaan_ayah ?: '-',
-                'Nama Ibu' => $pendaftar->nama_ibu ?: '-',
-                'Pekerjaan Ibu' => $pendaftar->pekerjaan_ibu ?: '-',
-                'Nomor WhatsApp Wali' => $pendaftar->wa_wali ?: '-',
-            ],
-            'Kemampuan dan Kesehatan' => [
-                'Kemampuan Membaca Al-Quran' => $pendaftar->kemampuan_membaca_alquran ?: '-',
-                'Jumlah Hafalan' => $pendaftar->jumlah_hafalan ?: '-',
-                'Riwayat Penyakit' => $pendaftar->riwayat_penyakit ?: '-',
-                'Motivasi Masuk Pondok' => $pendaftar->motivasi_masuk_pondok ?: '-',
-            ],
-        ];
-    }
-
-    /** Menambahkan foto dan dokumen pendaftar ke halaman PDF jika dapat dibaca. */
-    private function appendPdfDocuments(SimplePdf $pdf, Pendaftar $pendaftar): void
-    {
-        $pdf->section('Dokumen Upload');
-
-        foreach ($this->pdfDocuments($pendaftar) as $label => $path) {
-            $pdf->field($label, $this->pdfFileUrl($path));
-
-            if (! $path) {
-                continue;
-            }
-
-            $filePath = $this->pdfStoragePath($path);
-
-            if (! $filePath || ! $this->pdfFileIsImage($filePath)) {
-                $pdf->note($label.' berupa file PDF atau non-gambar. Buka tautan dokumen di atas untuk melihat file asli.');
-
-                continue;
-            }
-
-            if (! $pdf->image($filePath, 'Preview '.$label)) {
-                $pdf->note('Preview '.$label.' belum bisa ditampilkan, tetapi file asli tersedia melalui tautan di atas.');
-            }
-        }
-    }
-
-    /** Mendefinisikan nama serta lokasi setiap dokumen pendukung pendaftar. */
-    private function pdfDocuments(Pendaftar $pendaftar): array
-    {
-        return [
-            'Foto Santri' => $pendaftar->foto,
-            'Kartu Keluarga' => $pendaftar->kartu_keluarga,
-            'Akta Lahir' => $pendaftar->akta_lahir,
-            'Bukti Pembayaran' => $pendaftar->bukti_pembayaran,
-        ];
-    }
-
-    /** Mengubah nilai tanggal menjadi teks Indonesia yang aman untuk PDF. */
-    private function pdfDate($date, bool $withTime = false): string
-    {
-        if (blank($date)) {
-            return '-';
-        }
-
-        try {
-            return Carbon::parse($date)->format($withTime ? 'd/m/Y H:i' : 'd/m/Y');
-        } catch (\Throwable) {
-            return (string) $date;
-        }
-    }
-
-    /** Menghasilkan URL publik untuk berkas pada disk storage. */
-    private function pdfFileUrl(?string $path): string
-    {
-        return $path ? asset('storage/'.$path) : '-';
-    }
-
-    /** Mengubah path storage relatif menjadi path absolut jika berkas tersedia. */
-    private function pdfStoragePath(?string $path): ?string
-    {
-        if (! $path) {
-            return null;
-        }
-
-        $filePath = storage_path('app/public/'.$path);
-
-        return is_file($filePath) ? $filePath : null;
-    }
-
-    /** Memastikan berkas merupakan gambar yang didukung generator PDF. */
-    private function pdfFileIsImage(string $path): bool
-    {
-        $mime = strtolower((string) @mime_content_type($path));
-
-        return in_array($mime, ['image/jpeg', 'image/jpg', 'image/png'], true);
     }
 
     /** Menghitung angka ringkasan untuk seluruh kategori dashboard. */

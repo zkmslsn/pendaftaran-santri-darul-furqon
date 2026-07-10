@@ -1385,7 +1385,7 @@
                             Ingat saya
                         </label>
 
-                        <a href="/informasi" class="help-link">
+                        <a href="{{ route('informasi') }}" class="help-link">
                             Butuh bantuan?
                         </a>
                     </div>
